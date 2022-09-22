@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+name: Create JIRA Release with tickets since last tag
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      jira-project-key:
+        description: 'JIRA project key'
+        required: true
+        default: 'TEST'
+        type: choice
+        options:
+        - TEST
+        - EXP
+      release-version:
+        description: 'Release version, e.g. 22.3.4'
+        required: true
+        type: string
+      webhook:
+        description: 'Webhook'
+        required: true
+        type: string
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - uses: ufricke/create-jira-release@v1
+        with:
+          jira-project-key: ${{ inputs.jira-project-key }}
+          jira-automation-webhook: ${{ inputs.webhook }}
+          build-version: ${{ inputs.release-version }}
