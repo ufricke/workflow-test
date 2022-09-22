@@ -1,5 +1,5 @@
 # This is a basic workflow to help you get started with Actions
-name: Create JIRA Release with tickets since last tag
+name: Create JIRA Release with tickets that have been part of the latest release.
 
 # Controls when the workflow will run
 on:
@@ -16,6 +16,10 @@ on:
         - EXP
       release-version:
         description: 'Release version, e.g. 22.3.4'
+        required: true
+        type: string
+      previous-version:
+        description: 'Previous release version, e.g. 22.3.3'
         required: true
         type: string
 
@@ -38,7 +42,7 @@ jobs:
       - name: Collect issue numbers since last release/tag
         run: |
           export LC_ALL=en_US.utf8
-          git log $(git describe --abbrev=0 2> /dev/null || git rev-list --max-parents=0 HEAD)..HEAD | \
+          git log ${{inputs.previous-version}}...${{inputs.release-version}} | \
             grep -oP "${{ inputs.jira-project-key }}-\d{1,}" | sort | uniq | \
             sed 's/^\|$/"/g' | paste -sd , | awk '{print "RELATED_JIRA_ISSUES="$0}' >> $GITHUB_ENV
         shell: bash
