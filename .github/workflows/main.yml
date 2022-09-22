@@ -31,10 +31,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Fetch entire Git history (including tags)
-        run: git fetch --prune --unshallow --tags
-        shell: bash
-
       - name: Collect issue numbers since last release/tag
         run: |
           export LC_ALL=en_US.utf8
