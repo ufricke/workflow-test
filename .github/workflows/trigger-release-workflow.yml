@@ -1,0 +1,45 @@
+name: 'trigger jira release with proper params.'
+
+on:
+  workflow_dispatch:
+    inputs:
+      jira-project-key:
+        description: 'JIRA project key'
+        required: true
+        default: 'TEST'
+        type: choice
+        options:
+        - TEST
+        - EXP
+      release-version:
+        description: 'Release version, e.g. 22.3.4'
+        required: false 
+        type: string
+      previous-version:
+        description: 'Previous release version, e.g. 22.3.3'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:  
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Detect latest two releases and set as env variable 
+        run: |
+          latest_two_tags=( $(git tag --sort=-creatordate | grep -v "-" | head -n 2) )
+          if [ -z ${{ inputs.release-version }} ]; 
+            then echo "release-version=${latest_two_tags[0]}" >> $GITHUB_ENV;
+            else echo "release-version=${{ inputs.release-version }}" >> $GITHUB_ENV; fi
+          if [ -z ${{ inputs.previous-version }} ]; 
+            then echo "previous-version=${latest_two_tags[1]}" >> $GITHUB_ENV;
+            else echo "previous-version=${{ inputs.previous-version }}" >> $GITHUB_ENV; fi
+
+      - name: Verify env variables are set correctly 
+        run: |
+          echo ${{ env.release-version }}
+          echo ${{ env.previous-version }}
