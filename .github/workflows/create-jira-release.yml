@@ -1,5 +1,5 @@
-# This is a basic workflow to help you get started with Actions
-name: Create JIRA Release with tickets that have been part of the latest release.
+name: create-jira-release
+description: Create JIRA Release with tickets that have been part of the latest release.
 
 # Controls when the workflow will run
 on:
