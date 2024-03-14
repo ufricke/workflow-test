@@ -28,16 +28,26 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - name: Detect latest two releases and set as env variable 
+          
+      - name: Detect latest two releases and set as env variable
         run: |
           latest_two_tags=( $(git tag --sort=-creatordate | grep -v "-" | head -n 2) )
-          if [ -z ${{ inputs.release-version }} ]; 
-            then echo "release-version=${latest_two_tags[0]}" >> $GITHUB_ENV;
-            else echo "release-version=${{ inputs.release-version }}" >> $GITHUB_ENV; fi
-          if [ -z ${{ inputs.previous-version }} ]; 
-            then echo "previous-version=${latest_two_tags[1]}" >> $GITHUB_ENV;
-            else echo "previous-version=${{ inputs.previous-version }}" >> $GITHUB_ENV; fi
+          echo "previous-version=${latest_two_tags[1]}" >> $GITHUB_ENV
+          echo "release-version=${latest_two_tags[0]}" >> $GITHUB_ENV
+
+      - name: Compare manual input with automatically detected versions
+        run: |
+          echo "Manual input:  ${{ inputs.previous-version }}..${{ inputs.release-version }}"
+          echo "Auto detected: ${{ env.previous-version }}..${{ env.release-version }}"
+
+      - name: If manual input has been provided, override auto detection with it
+        run: |
+          if [ -n ${{ inputs.previous-version }} ]; then
+            echo "previous-version=${{ inputs.previous-version }}" >> $GITHUB_ENV;
+          fi
+          if [ -n ${{ inputs.release-version }} ]; then
+            echo "release-version=${{ inputs.release-version }}" >> $GITHUB_ENV;
+          fi
 
       - name: Verify env variables are set correctly 
         run: |
