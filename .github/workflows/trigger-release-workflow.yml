@@ -11,13 +11,13 @@ on:
         options:
         - TEST
         - EXP
-      release-version:
-        description: 'Release version, e.g. 22.3.4'
-        required: false 
-        type: string
       previous-version:
         description: 'Previous release version, e.g. 22.3.3'
         required: false
+        type: string
+      release-version:
+        description: 'Release version, e.g. 22.3.4'
+        required: false 
         type: string
 
 jobs:
@@ -29,27 +29,32 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Detect latest two releases and set as env variable
+      - name: Detect latest version automatically
         run: |
-          latest_two_tags=( $(git tag --sort=-creatordate | grep -v "-" | head -n 2) )
-          echo "previous-version=${latest_two_tags[1]}" >> $GITHUB_ENV
-          echo "release-version=${latest_two_tags[0]}" >> $GITHUB_ENV
+          echo "release-version=$(git tag --sort=-creatordate | grep -v "-" | head -n 1)" >> $GITHUB_ENV
 
-      - name: Compare manual input with automatically detected versions
+      - name: Detect previous version automatically
+        run: |
+          if [ -n "${{ inputs.previous-version }}" ]; then
+            echo "previous-version=$(git tag --sort=-version:refname | grep -v "-" | grep -A 1 "${{ inputs.release-version }}" | tail -n 1)" >> $GITHUB_ENV
+          else
+            echo "previous-version=$(git tag --sort=-version:refname | grep -v "-" | grep -A 1 "${{ env.release-version }}" | tail -n 1)" >> $GITHUB_ENV
+          fi
+
+      - name: Compare manual input with automatically detected values
         run: |
           echo "Manual input:  ${{ inputs.previous-version }}..${{ inputs.release-version }}"
-          echo "Auto detected: ${{ env.previous-version }}..${{ env.release-version }}"
-
+          echo "Auto detected:  ${{ env.previous-version }}..${{ env.release-version }}"
+    
       - name: If manual input has been provided, override auto detection with it
         run: |
-          if [ -n ${{ inputs.previous-version }} ]; then
+          if [ -n "${{ inputs.previous-version }}" ]; then
             echo "previous-version=${{ inputs.previous-version }}" >> $GITHUB_ENV;
           fi
-          if [ -n ${{ inputs.release-version }} ]; then
+          if [ -n "${{ inputs.release-version }}" ]; then
             echo "release-version=${{ inputs.release-version }}" >> $GITHUB_ENV;
           fi
 
-      - name: Verify env variables are set correctly 
+      - name: Verify env variables are set correctly
         run: |
-          echo ${{ env.release-version }}
-          echo ${{ env.previous-version }}
+          echo "${{ env.previous-version }}..${{ env.release-version }}"
